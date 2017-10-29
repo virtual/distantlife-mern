@@ -24,27 +24,20 @@ class Login extends Component{
   handleLogin() {
     // this makes an obj to retun
     this.props.submitLogin({
-      email: this.state.email,
+      username: this.state.email,
       password: this.state.password
-    });
-    console.log("HI");
-    console.log(this.props);
-    console.log("HI AGain");
-    console.log(this.state);
-
-    setTimeout(()=>{
-      if(this.props.success){
+    }).then((response)=>{
+      console.log(response);
+      if (response.success) {
         this.props.history.push("/"); 
-      }else{
-        this.setState({
-          link: <p>QUIT FAILING</p>
-        })
+      } else {
+        console.log(response.message);
       }
-    }, 200);
-   
-
-    // this.props.history.push("/");
+    }).catch(e => {
+      console.log(e);
+    });
   }
+
   inputemailChange(event) {
     this.setState({email: event.target.value});
   }

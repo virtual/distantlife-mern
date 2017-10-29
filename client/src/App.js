@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import logo from './logo.svg';
 import Login from './User/Login';
 import SignUp from './User/SignUp';
+import Navbar from './Navbar/Navbar';
 import {
   BrowserRouter as Router,
   Route
@@ -35,11 +36,13 @@ class App extends Component {
                  if (userObj) { 
                   this.setState({
                     user:userObj.data
-                  }, ()=>{ console.log(this.state.user)}); 
-                   resolve();
+                  }); 
+                   resolve(userObj.data);
                   } else {
                   reject();
             }
+        }).catch(e => {
+            console.log(e);
         }); 
       })
     }
@@ -52,7 +55,9 @@ class App extends Component {
           } else {
             resolve(res);
           }
-        });
+        }).catch(e => {
+          console.log(e);
+      });
       });
     }
   
@@ -63,17 +68,20 @@ class App extends Component {
             username: loginObj.username,
             password: loginObj.password
         }).then((userObj) => {
-          if (userObj) { 
-            axios.get('/user').then((res)=>{
+            if (userObj.data.success) { 
+              axios.get('/user').then((res) => {
                 this.setState({
-                  user:res.data
+                  user: res.data.user
                 })
-                resolve();
+                resolve(res.data);
+              }).catch(e => {
+                console.log(e);
             });
-          }else{
-            console.log(userObj);
-            reject();
-          }
+            } else { 
+              reject(userObj.data);
+            }
+          }).catch(e => {
+            console.log(e);
         }); 
       }
     )};
@@ -81,16 +89,20 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
         <Router>
-          <div> 
-          <div className="container">
-            <Route path='/login' render={() => <Login history={this.props.history} submitLogin={this.submitLogin} />} />
-            <Route path='/signup' render={() => <SignUp submitSignup={this.submitSignup} />} />
-          </div> 
+          <div>
+            <Navbar />
+            <header className="App-header">
+              <img src={logo} className="App-logo" alt="logo" />
+              <h1 className="App-title">Welcome to React</h1>
+            </header>
+
+            <div>
+              <div className="container">
+                <Route path='/login' render={() => <Login history={this.props.history} submitLogin={this.submitLogin} />} />
+                <Route path='/signup' render={() => <SignUp submitSignup={this.submitSignup} />} />
+              </div>
+            </div>
           </div>
         </Router>
       </div>

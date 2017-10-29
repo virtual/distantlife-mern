@@ -7,6 +7,11 @@ const bodyParser = require('body-parser');
 const config = require("./config");
 const User = require('./models/User');
 
+var session = require('express-session');
+var hash = require('password-hash');
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
+
 // connect to mLab
 let mongodbUri = "mongodb://"+config.mlab.user+":"+config.mlab.password+"@ds241025.mlab.com:41025/distantlife";
 var mongooseUri = uriUtil.formatMongoose(mongodbUri);
@@ -21,26 +26,25 @@ db.once("open", () => {
   console.log("connected to db");
 });
 
-// passport
-var session = require('express-session');
-var hash = require('password-hash');
-var passport = require('passport');
-var LocalStrategy = require('passport-local').Strategy;
+// body parser used any time form data is submitted on site
 app.use(bodyParser.json({
   type: "application/json"
 }));
 app.use(bodyParser.urlencoded({
   extended: false
 }));
-app.use(session({ secret: 'happy halloween'}));
+// passport
+app.use(session({ secret: 'happy halloween', resave: false, saveUninitialized: false}));
 app.use(passport.initialize());
 app.use(passport.session());
 
 passport.use(new LocalStrategy(
-  {email:'username', password:'password'}, 
+  {username:'email', password:'password'}, 
   (email, password, done) => {
     User.findOne({ email: email }, (error, user) => {
+      console.log('checking hash')
       if (hash.verify(password, user.password)) {
+        console.log("verified!")
         done(null, user);
       } else if (user || !error) {
         done(error, null);
@@ -55,10 +59,15 @@ passport.serializeUser(function(user, done) {
   done(null, user._id);
 });
 
-passport.deserializeUser(function(id, done){
-  User.findById(id, function(err, user) {
-    done(err, user);
-  });
+passport.deserializeUser((id, done) => {
+  // console.log(`id: ${id}`);
+  User.findById(id)
+    .then(user => {
+      done(null, user);
+    })
+    .catch(error => {
+      console.log(`Error: ${error}`);
+    });
 });
 // end passport
 
@@ -66,7 +75,10 @@ passport.deserializeUser(function(id, done){
 app.get('/user', (req, res)=>{
   if (req.user){
     User.findById(req.user._id).exec((err, user)=>{
-      res.json(user)
+      console.log({success: true,
+        user: user})
+      res.json({success: true,
+        user: user})
     })
   } else {
     res.json({err: {msg:'user not signed in', code:1}});
@@ -82,16 +94,28 @@ app.post('/logout', (req, res) => {
   }
 })
 
-app.post('/login', (req, res, next) => {
-  passport.authenticate('local', (err, user) => {
+app.post('/login', function (req, res, next) {
+  console.log(req.body);
+  passport.authenticate("local", function(err, user){
     if (err) {
-      console.log(err);
+      res.json({ found: false, success: false, err: true, message: err}); // can also send res.status
+    } else if (user) {
+      // write code to send user to dashboard - passport 
+      req.logIn(user, (err)=>{
+        //console.log(user);
+        // gets a session working
+        if (err) {
+          res.json({found: false, success: false, message: err});
+        } else {
+          res.json({found: true, success: true, message: "Successfully logged in",
+            user: user
+          });
+        }
+      })
+    } else {
+      res.json({found: false, success: false, message: "Password and user do not match!"});      
     }
-    req.logIn(user, function (error) {
-      if (error) return next(error);
-      res.json(user);
-    });
-  })(req, res, next);
+  })(req,res,next); 
 });
 
 app.post("/signup", (req, res, next) => {
