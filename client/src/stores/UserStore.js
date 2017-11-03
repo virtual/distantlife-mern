@@ -16,12 +16,15 @@ export default class UserStore { // do all store stuff
          return this.user
       }
     });
-
+    // always gets run, not called
     axios.get('/user').then((success)=>{
       this.user = success.data.user //when updated all observers will rerender comps
     })
-  }
-  getUser() {
-    
-  }
+
+    // login
+
+    // logout
+
+    // signup
+  } 
 }

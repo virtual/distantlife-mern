@@ -3,11 +3,7 @@ import { inject, observer } from 'mobx-react'; // tells whenever we use that thi
 
 var Dashboard = observer( class extends Component {
 
-  componentDidMount(){
-    //this.props.userStore.getUser();
-  }
   render() {
-
     console.log(this.props.userStore.retrieveUser);
     return (
       <div>this {this.props.userStore.retrieveUser.firstName}</div>
