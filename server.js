@@ -73,16 +73,17 @@ passport.deserializeUser((id, done) => {
 
 
 app.get('/user', (req, res)=>{
-  if (req.user){
-    User.findById(req.user._id).exec((err, user)=>{
+  let id = '59f5f732075a4811582785b1';
+  //if (req.user){
+    User.findById(id).exec((err, user)=>{
       console.log({success: true,
         user: user})
       res.json({success: true,
         user: user})
     })
-  } else {
-    res.json({err: {msg:'user not signed in', code:1}});
-  }
+  // } else {
+  //   res.json({err: {msg:'user not signed in', code:1}});
+  // }
 });
 
 app.post('/logout', (req, res) => {

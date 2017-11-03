@@ -8,7 +8,9 @@ import {
   Route
 } from 'react-router-dom';
 import './App.css';
-
+import {Provider} from "mobx-react";
+import UserStore from './stores/UserStore';
+import Dashboard from './Dashboard/Dashboard';
 var axios = require('axios');
 
 class App extends Component {
@@ -89,6 +91,7 @@ class App extends Component {
   render() {
     return (
       <div className="App">
+        <Provider userStore={new UserStore()}>
         <Router>
           <div>
             <Navbar />
@@ -100,11 +103,13 @@ class App extends Component {
             <div>
               <div className="container">
                 <Route path='/login' render={() => <Login history={this.props.history} submitLogin={this.submitLogin} />} />
+    <Route path='/dashboard' render={() => <Dashboard /> } />
                 <Route path='/signup' render={() => <SignUp submitSignup={this.submitSignup} />} />
               </div>
             </div>
           </div>
         </Router>
+        </Provider>
       </div>
     );
   }
